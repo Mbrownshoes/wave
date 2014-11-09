@@ -1,0 +1,7 @@
+build
+*.shp
+*.dbf
+*.prj
+*.tif
+*.shx
+levels.json
