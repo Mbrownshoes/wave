@@ -1,14 +1,14 @@
 # get BC census boundary and widdle downt to Nanaimo
 
-build/subunits.json: build/Boundaries/CD_2011.shp
-	ogr2ogr -f GeoJSON  -t_srs "+proj=latlong +datum=WGS84" -where "CDNAME IN ('Alberni-Clayoquot')" \
-	build/subunits.json \
-	build/Boundaries/CD_2011.shp
+# build/subunits.json: build/Boundaries/CD_2011.shp
+# 	ogr2ogr -f GeoJSON  -t_srs "+proj=latlong +datum=WGS84" -where "CDNAME IN ('Alberni-Clayoquot')" \
+# 	build/subunits.json \
+# 	build/Boundaries/CD_2011.shp
 
-build/tofino_outline.json: build/subunits.json
-	node_modules/.bin/topojson \
-		-o $@ \
-		-- $<
+# build/tofino_outline.json: build/subunits.json
+# 	node_modules/.bin/topojson \
+# 		-o $@ \
+# 		-- $<
 
 # make shp from DEM
 build/tofino_e.shp: build/all/092f04/092f04_0100_deme.dem
@@ -36,39 +36,38 @@ twoLevels.json: build/twolevels.shp
 	-o $@ \
 	-- twoLevels=$<
 
+# get roads down to Tofino level
 
+# build/roads.json: build/roads/NRN_BC_11_0_ROADSEG.shp
+# 	node_modules/.bin/topojson \
+# 	-o $@ \
+# 	--bbox="-125.8444564,49.0936733,-125.9267002,49.1666487" \
+# 	-- roads=$<
+
+build/roads.json: build/roads/NRN_BC_11_0_ROADSEG.shp
+	ogr2ogr -f GeoJSON -clipdst -125.8444564 49.0936733 -125.9267002 49.1666487 \
+	build/roads.json \
+	build/roads/NRN_BC_11_0_ROADSEG.shp
+
+roads.json: build/roads.json
+	node_modules/.bin/topojson \
+		-o $@ \
+		-- $<
 
 
 # run this in terminal to merge all contour shp files
 	# for i in $(ls build/tofino*.shp); do ogr2ogr -f 'ESRI Shapefile' -where "ELEV < 31" -update -append build/merged_30m $i -nln contours done
 
 # make Topojson file
-build/contours.json: build/merged_30m/contours.shp
-	node_modules/.bin/topojson \
-	-o $@ \
-	-p elevation="ELEV" \
-	-- contours=$<
-
-
-# merge boundary lines and contours 
-
-build/merged.json: build/contours.json build/tofino_outline.json
-	node_modules/.bin/topojson \
-	-o build/merged.json -p elevation -- build/tofino_outline.json build/contours.json
-# background first method
-
-# gdal_translate build/all/092c09/092f04_0100_demw.dem stuff.tif
-# gdal_translate build/all/092c09/092c09_0100_deme.dem stuffe.tif
-
-# gdal_rasterize -a ELEV -ts 3000 3000 -l contours /Users/mathewbrown/projects/wave/build/merged_500m/contours.shp /Users/mathewbrown/projects/wave/build/out.tif
-
-# gdal_calc.py -A build/out.tif --outfile=level0300.tif --calc="300*(A>300)" --overwrite
-
-# gdal_polygonize.py level0300.tif -f "ESRI Shapefile" level0300.shp level_0300 elev
-
-#topojson --id-property none -p elevation=elev -o final.json -- levels.json 
-# build/contours.json: levels.shp
+# build/contours.json: build/merged_30m/contours.shp
 # 	node_modules/.bin/topojson \
 # 	-o $@ \
 # 	-p elevation="ELEV" \
 # 	-- contours=$<
+
+
+# # merge boundary lines and contours 
+
+merged.json: twoLevels.json roads.json
+	node_modules/.bin/topojson \
+	-o merged.json -p elevation -p roads -- twoLevels.json roads.json

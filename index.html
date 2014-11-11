@@ -48,21 +48,20 @@ var svg = d3.select(map.getPanes().overlayPane).append("svg"),
     g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
 
+// var projection = d3.geo.conicConformal()
+
+// var path = d3.geo.path()
+//   .projection(projection);
 
 // setup scale for colour coding contours
 var cScale = d3.scale.linear()
 	.domain([0,1]);
 
 // var test;
-// d3.json("nanaimo.json", function(error, nanaimo) {
-// 	if (error) return console.error(error);
-	 
-// 	svg.append("path")
-// 		.datum(topojson.mesh(nanaimo))
-// 		.attr("d", path);
-// });
+
+
 var elev;
-var coast;
+var roads;
 // read in topojson file
 	d3.json("twoLevels.json", function(error, merged) {
 		if (error) return console.error(error);
@@ -72,7 +71,7 @@ var coast;
 			topo = bTopo.features;
 			feature = topo;
 
-		
+		roads = merged;
 		//save to play in debugger	
 		elev = bTopo
 
@@ -97,9 +96,6 @@ var coast;
 			.enter()
 			.append("path");
 			
-			
-
-
 
 
 	var transform = d3.geo.transform({point: projectPoint}),
@@ -141,11 +137,19 @@ var coast;
 				{return "white"}
 				// {return interp(cScale(d.properties.elevation))};
 			})
-			// .style("fill-opacity", 0.2);
+			.style("fill-opacity", 0.2);
 	        // .on("mouseover", highlight) // just a little example of what's available in terms of interaction
 	        // .on("mouseout", function (d,i) {unhighlight(this,d); 
 	        // });
 	}
+	
+	 
+	// svg.append("path")
+	// 	.datum(topojson.mesh(roads))
+	// 	.attr("d", path)
+	// 	.style("stroke", "black")
+	// 	.style("fill","none");
+
 	// function to interpolate between to colours
 	// see http://stackoverflow.com/questions/12217121/continuous-color-scale-from-discrete-domain-of-strings
 	function projectPoint(x, y) {
