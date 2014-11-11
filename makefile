@@ -56,6 +56,7 @@ build/merged.json: build/contours.json build/tofino_outline.json
 
 # gdal_polygonize.py level0300.tif -f "ESRI Shapefile" level0300.shp level_0300 elev
 
+#topojson --id-property none -p elevation=elev -o final.json -- levels.json 
 # build/contours.json: levels.shp
 # 	node_modules/.bin/topojson \
 # 	-o $@ \

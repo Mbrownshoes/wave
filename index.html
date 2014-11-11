@@ -151,6 +151,8 @@ var coast;
 				// {return "none"}
 				{return interp(cScale(d.properties.elevation))};
 		})
+			// plot roads between layers and have the next layer transparent
+			
 			.style("fill", function(d, i) {
 			if (d.properties.elevation < 30) {return "steelblue"}
 				else
