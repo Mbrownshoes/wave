@@ -36,36 +36,18 @@ path.Topo_30 {fill: #94BF8B; }
 //     .addLayer(new L.TileLayer("http://{s}.tiles.mapbox.com/v3/examples.map-vyofok3q/{z}/{x}/{y}.png"));
 
 var map = L.map('map').setView([49.128984, -125.8864317], 12);
-        mapLink = 
-            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-        L.tileLayer(
-            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; ' + mapLink + ' Contributors',
-            maxZoom: 18,
-            }).addTo(map);
+        // mapLink = 
+        //     '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        // L.tileLayer(
+        //     'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     attribution: '&copy; ' + mapLink + ' Contributors',
+        //     maxZoom: 18,
+        //     }).addTo(map);
 
 var svg = d3.select(map.getPanes().overlayPane).append("svg"),
     g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-// var width = 1200,
-//     height = 960;
 
-	
-// var projection = d3.geo.conicConformal()
-// 							.rotate([98, 0])
-// 						    .center([-25.9, 49.12])//sides
-// 						    .parallels([-75, 80.5]) //top and bottom
-// 						    .scale(1)
-// 						    .translate([0,0]);
-
-// var path = d3.geo.path()
-//     .projection(projection);
-
-// // setup canvas
-// var svg = d3.select("body")
-// 	.append("svg")
-//     .attr("width", width)
-//     .attr("height", height);
 
 // setup scale for colour coding contours
 var cScale = d3.scale.linear()
@@ -82,11 +64,11 @@ var cScale = d3.scale.linear()
 var elev;
 var coast;
 // read in topojson file
-	d3.json("final.json", function(error, merged) {
+	d3.json("twoLevels.json", function(error, merged) {
 		if (error) return console.error(error);
 
 		// first variable is used to center and scale map the viewport
-		var bTopo = topojson.feature(merged, merged.objects.levels),
+		var bTopo = topojson.feature(merged, merged.objects.twoLevels),
 			topo = bTopo.features;
 			feature = topo;
 
@@ -152,13 +134,14 @@ var coast;
 				{return interp(cScale(d.properties.elevation))};
 		})
 			// plot roads between layers and have the next layer transparent
-			
+
 			.style("fill", function(d, i) {
-			if (d.properties.elevation < 30) {return "steelblue"}
+			if (d.properties.elevation < 30 ) {return "steelblue"}
 				else
 				{return "white"}
 				// {return interp(cScale(d.properties.elevation))};
-		});
+			})
+			// .style("fill-opacity", 0.2);
 	        // .on("mouseover", highlight) // just a little example of what's available in terms of interaction
 	        // .on("mouseout", function (d,i) {unhighlight(this,d); 
 	        // });

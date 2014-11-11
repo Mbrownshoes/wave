@@ -10,24 +10,34 @@ build/tofino_outline.json: build/subunits.json
 		-o $@ \
 		-- $<
 
-# build/ETOPO1_Ice_g_geotiff.zip:
-# 	mkdir -p $(dir $@)
-# 	curl -o $@ http://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/ice_surface/grid_registered/georeferenced_tiff/$(notdir $@)
-
-# build/ETOPO1_Ice_g_geotiff.tif: build/ETOPO1_Ice_g_geotiff.zip
-# 	unzip -od $(dir $@) $<
-# 	touch $@
-
-# build/crop.tif: build/ETOPO1_Ice_g_geotiff.tif
-# 	gdal_translate -projwin -126.178 49.3978 -125.3171 48.9171 build/ETOPO1_Ice_g_geotiff.tif build/crop.tif
-# 	# ulx uly lrx lry  // W S E N
-
 # make shp from DEM
 build/tofino_e.shp: build/all/092f04/092f04_0100_deme.dem
 	gdal_contour -a ELEV -i 1.0 build/all/092f04/092f04_0100_deme.dem build/tofino_e.shp
 
 build/tofino_w.shp: build/all/092f04/092f04_0100_demw.dem
 	gdal_contour -a ELEV -i 1.0 build/all/092f04/092f04_0100_demw.dem build/tofino_w.shp
+
+# try making 1 and 30 m contour line shp
+build/onem.shp: build/tofino_w.shp
+	ogr2ogr build/onem.shp -f 'ESRI Shapefile' -where "ELEV = 1" build/tofino_w.shp
+
+build/thirtym.shp: build/tofino_w.shp
+	ogr2ogr build/thirtym.shp -f 'ESRI Shapefile' -where "ELEV = 30" build/tofino_w.shp
+
+# merge together
+build/twolevels.shp: build/onem.shp build/thirtym.shp
+	ogr2ogr build/twolevels.shp build/onem.shp
+	ogr2ogr -update -append build/twolevels.shp build/thirtym.shp
+
+twoLevels.json: build/twolevels.shp
+	node_modules/.bin/topojson \
+	--id-property none \
+	-p elevation=ELEV \
+	-o $@ \
+	-- twoLevels=$<
+
+
+
 
 # run this in terminal to merge all contour shp files
 	# for i in $(ls build/tofino*.shp); do ogr2ogr -f 'ESRI Shapefile' -where "ELEV < 31" -update -append build/merged_30m $i -nln contours done
