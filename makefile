@@ -18,11 +18,11 @@ build/tofino_w.shp: build/all/092f04/092f04_0100_demw.dem
 	gdal_contour -a ELEV -i 1.0 build/all/092f04/092f04_0100_demw.dem build/tofino_w.shp
 
 # try making 1 and 30 m contour line shp
-build/onem.shp: build/tofino_w.shp
-	ogr2ogr build/onem.shp -f 'ESRI Shapefile' -where "ELEV = 1" build/tofino_w.shp
+build/onem.shp: build/all/polytofino.shp
+	ogr2ogr build/onem.shp -f 'ESRI Shapefile' -where "ELEV = 1" build/all/polytofino.shp
 
-build/thirtym.shp: build/tofino_w.shp
-	ogr2ogr build/thirtym.shp -f 'ESRI Shapefile' -where "ELEV = 30" build/tofino_w.shp
+build/thirtym.shp: build/all/polytofino.shp
+	ogr2ogr build/thirtym.shp -f 'ESRI Shapefile' -where "ELEV = 30" build/all/polytofino.shp
 
 # merge together
 build/twolevels.shp: build/onem.shp build/thirtym.shp
