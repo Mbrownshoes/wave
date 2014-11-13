@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+@import url(//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.css);
+
+#map {
+  width: 960px;
+  height: 500px;
+  background: "none";
+}
+svg {
+  position: relative;
+}
+
+.border {
+	fill:#ddd;
+	stroke: black;
+}
+
+path.Topo_1 { fill:#ACD0A5; stroke: #0978AB; stroke-width: 1px; }
+path.Topo_30 {fill: #94BF8B; }
+
+
+
+</style>
+
+<body>
+<p id="map">
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+// var map = new L.Map("map", {center: [49.1642, -123.9364], zoom: 4})
+//     .addLayer(new L.TileLayer("http://{s}.tiles.mapbox.com/v3/examples.map-vyofok3q/{z}/{x}/{y}.png"));
+
+var map = L.map('map').setView([49.128984, -125.8864317], 13);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+
+var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+    g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+// var width = 1200,
+//     height = 960;
+
+	
+// var projection = d3.geo.conicConformal()
+// 							.rotate([98, 0])
+// 						    .center([-25.9, 49.12])//sides
+// 						    .parallels([-75, 80.5]) //top and bottom
+// 						    .scale(1)
+// 						    .translate([0,0]);
+
+// var path = d3.geo.path()
+//     .projection(projection);
+
+// // setup canvas
+// var svg = d3.select("body")
+// 	.append("svg")
+//     .attr("width", width)
+//     .attr("height", height);
+
+// setup scale for colour coding contours
+var cScale = d3.scale.linear()
+	.domain([0,1]);
+
+// var test;
+// d3.json("nanaimo.json", function(error, nanaimo) {
+// 	if (error) return console.error(error);
+	 
+// 	svg.append("path")
+// 		.datum(topojson.mesh(nanaimo))
+// 		.attr("d", path);
+// });
+var elev;
+var coast;
+// read in topojson file
+	d3.json("elev.json", function(error, merged) {
+		if (error) return console.error(error);
+
+		// first variable is used to center and scale map the viewport
+		var bTopo = topojson.feature(merged, merged.objects.elev),
+			topo = bTopo.features;
+			feature = topo;
+
+		
+		//save to play in debugger	
+		elev = bTopo
+
+		// calculate the range for colors basend on the elevation property
+		var hRange = d3.extent(topo, function(d,i ) {
+			
+			return i
+		});
+
+		cScale.domain(hRange);
+
+		// calculate bounds, scale and transform
+	    // see http://stackoverflow.com/questions/14492284/center-a-map-in-d3-given-a-geojson-object
+	 //    var b = path.bounds(bTopo),
+	 //    	s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+	 //        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+		// projection.scale(s)
+		// 	.translate(t)
+
+		svg.selectAll("path")
+			.data(topo)
+			.enter()
+			.append("path");
+			
+			
+
+	var transform = d3.geo.transform({point: projectPoint}),
+		path = d3.geo.path().projection(transform);
+
+	var feature = g.selectAll("path")
+		.data(bTopo.features)
+		.enter()
+		.append("path");
+
+	map.on("viewreset", reset);
+	reset();
+
+	function reset() {
+
+		var bounds = path.bounds(bTopo),
+			topLeft = bounds[0],
+			bottomRight = bounds[1];
+
+		svg.attr("width", bottomRight[0] - topLeft[0])
+			.attr("height", bottomRight[1] - topLeft[1])
+			.style("left", topLeft[0] + "px")
+			.style("top", topLeft[1] + "px");
+
+		g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+		feature.attr("d", path)
+			.style("stroke", function(d, i) {
+			if (d.properties.elevation < 40) {return "steelblue"}
+				else
+				// {return "none"}
+				{return interp(cScale(d.properties.elevation))};
+		})
+			// plot roads between layers and have the next layer transparent
+
+			.style("fill", function(d, i) {
+			if (i == 0 ) {return "steelblue"}
+				else
+				// {return "blue"}
+				console.log(i)
+				// {return "none"}
+				{return interp(cScale(i))};
+			})
+			.style("fill-opacity", 0.5);
+	        // .on("mouseover", highlight) // just a little example of what's available in terms of interaction
+	        // .on("mouseout", function (d,i) {unhighlight(this,d); 
+	        // });
+	}
+	// function to interpolate between to colours
+	// see http://stackoverflow.com/questions/12217121/continuous-color-scale-from-discrete-domain-of-strings
+	function projectPoint(x, y) {
+		var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+		this.stream.point(point.x, point.y);
+	};
+
+	});
+
+function interp(x) {
+    var ans = d3.interpolateLab("#ffffe5", "#004529")(x);
+    return ans
+}
+// A simple highlight example
+// function highlight(x) {
+
+//     var s = d3.select(this);
+
+//     s.style("stroke", "red");
+
+// }
+// function unhighlight(x,y) {
+
+//     var old = y.properties.elevation;
+//     var u = d3.select(x);
+
+//     u.style("stroke", function(d, i) {
+//             return interp(cScale(old));
+//         })
+// }
+
+</script>
+</body>
+</html>
